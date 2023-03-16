@@ -62,7 +62,7 @@ function buildContent0(page, object, reviewDoc){
     header.setAttribute("id", "name");
     page.appendChild(header);
     getReviewDocument(object);
-    console.log("Data:", reviewDoc[1]);
+    console.log("Data:", reviewDoc[1]); // ** Dette fungerer ikke
 }
 
 
