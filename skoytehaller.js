@@ -1,3 +1,5 @@
+//import { doc, getDoc } from firebase;
+
 const firebaseConfig = {
     apiKey: "AIzaSyAL9W1cB5FcHTyNEtYz71vYFcCZymYciAE",
     authDomain: "skating-effad.firebaseapp.com",
@@ -27,6 +29,14 @@ db.collection("Skatinghalls").get().then((snapshot) => {
 });
 
 // Hovedfunksjoner
+const reviewDoc = [];
+async function getReviewDocument(object){
+    db.collection("Reviews").where(firebase.firestore.FieldPath.documentId(), '==', object.name).get().then((snapshot) => {
+        reviewDoc.push(snapshot.docs);
+    });
+    console.log(reviewDoc);
+
+}
 
 function displayPage(i){
     // Setter opp div elementet som inneholder det dynamiske innholdet.
@@ -34,19 +44,25 @@ function displayPage(i){
     page.innerHTML = "";
 
     let object = dokumenter[i].data(); // Dataene som skal vises på nettsiden.
+    if(reviewDoc.length > 0){reviewDoc.pop()}
+    console.log(reviewDoc);
+    //myObj = reviewDoc.data[0];
+    //console.log(myObj);
+    getReviewDocument(object)
 
-    buildContent0(page, object); // Header
+    buildContent0(page, object, reviewDoc); // Header
     buildContent1(page, object); // Bilde og beskrivelse
     buildContent2(page, object); // Billetter, kart, kontaktinfo og åpningstider
 }
 
-
-function buildContent0(page, object){
+function buildContent0(page, object, reviewDoc){
     // Skaper tittelen for siden.
     let header = document.createElement("h1");
     header.innerHTML = object.name;
     header.setAttribute("id", "name");
     page.appendChild(header);
+    getReviewDocument(object);
+    console.log("Data:", reviewDoc[1]);
 }
 
 
@@ -202,4 +218,32 @@ function map(object){
     mapbox.setAttribute("class", "mapbox")
     mapbox.appendChild(map);
     return mapbox;
+}
+
+function reviewsStars(object){
+    // Regner ut hvor mange stjerner hallen har og bygger de
+    let stars = object.stars;
+    let len = stars.length;
+    let sum = stars.reduce((partialSum, a) => partialSum + a, 0);
+    let average = Math.round(sum/len*10)/10;
+    let averageInt = Math.round(average);
+    
+    let starsEl = document.createElement("h2");
+    starsEl.setAttribute("class", "stars");
+    let starsColored = document.createElement("span");
+    starsColored.setAttribute("class", "starsColored");
+
+    let tmp = "";
+    for(let i=0; i<averageInt; i++){
+        tmp = tmp+"★";
+    }
+    starsColored.innerHTML = tmp;
+    starsEl.appendChild(starsColored);
+    tmp = ""
+    for(let i=0; i<5-averageInt; i++){
+        tmp = tmp+"★";
+    }
+    starsEl.appendChild(tmp);
+
+    return starsEl;
 }
