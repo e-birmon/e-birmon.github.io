@@ -1,0 +1,48 @@
+#cookiebanner {
+    top: 50%;
+    left: 50%;
+    width: 30vw;
+    transform: translate(-50%, -50%);
+    position: fixed;
+    background-color: #f2f2f2;
+    border-style: solid;
+    border-radius: 10px;
+    border-color: #348ceb;
+    padding-bottom: 5px;
+}
+
+#cookieYes {
+    background-color: #2564a8;
+    font-size: medium;
+    padding: 5px;
+    color: white;
+    border-radius: 2px;
+    border-color: #2564a8;
+    border-style: solid;
+    border-width: 3px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+#cookieYes:hover {
+    background-color: #215894;
+    border-color: #215894;
+}
+
+#cookieNo {
+    background-color: #e5e5e5;
+    font-size: medium;
+    padding: 5px;
+    color: black;
+    border-radius: 2px;
+    border-color: #2564a8;
+    border-style: solid;
+    border-width: 3px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+#cookieNo:hover {
+    background-color: #d5d5d5;
+    border-color: #215894;
+}

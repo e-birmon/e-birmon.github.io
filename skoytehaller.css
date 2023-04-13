@@ -86,6 +86,19 @@ ul {
     font-family: monospace, monospace;
 }
 
+.stars {
+    font-size: large;
+    text-align: left;
+    text-decoration: none;
+    font-weight: bold;
+    color: lightblue;
+    cursor: pointer;
+}
+
+.starsColored {
+    color: #2564a8;
+}
+
 @media (max-width: 900px) {
     #containerLeft {
         width: 100%;

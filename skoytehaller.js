@@ -29,70 +29,73 @@ db.collection("Skatinghalls").get().then((snapshot) => {
 });
 
 // Hovedfunksjoner
-const reviewDoc = [];
-async function getReviewDocument(object){
-    db.collection("Reviews").where(firebase.firestore.FieldPath.documentId(), '==', object.name).get().then((snapshot) => {
-        reviewDoc.push(snapshot.docs);
+let reviewDoc = "";
+function getReviewDocument(object) {
+    return new Promise((resolve, reject) => {
+      db.collection("Reviews").where(firebase.firestore.FieldPath.documentId(), '==', object.name)
+        .get()
+        .then((snapshot) => {
+          let reviewDoc = snapshot.docs;
+          resolve(reviewDoc);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
-    console.log(reviewDoc);
-
 }
 
-function displayPage(i){
+async function displayPage(i) {
     // Setter opp div elementet som inneholder det dynamiske innholdet.
     let page = document.getElementById("page");
     page.innerHTML = "";
-
+  
     let object = dokumenter[i].data(); // Dataene som skal vises på nettsiden.
-    if(reviewDoc.length > 0){reviewDoc.pop()}
-    console.log(reviewDoc);
-    //myObj = reviewDoc.data[0];
-    //console.log(myObj);
-    getReviewDocument(object)
-
-    buildContent0(page, object, reviewDoc); // Header
+  
+    // Retrieve the review documents
+    reviewDoc = await getReviewDocument(object);
+    buildContent0(page, object); // Header
     buildContent1(page, object); // Bilde og beskrivelse
     buildContent2(page, object); // Billetter, kart, kontaktinfo og åpningstider
-}
+  }
 
-function buildContent0(page, object, reviewDoc){
+  async function buildContent0(page, object) {
     // Skaper tittelen for siden.
     let header = document.createElement("h1");
     header.innerHTML = object.name;
     header.setAttribute("id", "name");
     page.appendChild(header);
-    getReviewDocument(object);
-    console.log("Data:", reviewDoc[1]); // ** Dette fungerer ikke
-}
+  }
 
 
 function buildContent1(page, object){
-     // Skaper en container for bildet og beskrivelsen av skøytehallen.
-     let container = document.createElement("div");
-     container.setAttribute("class", "container")
- 
- 
-     let imgbox = document.createElement("div"); // Container for bildet.
- 
-     // Skaper bildet og bildeteksten.
-     let img = document.createElement("img");
-     let imgtxt = document.createElement("p");
-     img.setAttribute("src", object.img[0]);
-     imgtxt.innerHTML = "Bilde: "+object.img[1];
-     imgtxt.style.fontSize = "small";
-     imgbox.appendChild(img);
-     imgbox.appendChild(imgtxt);
-     imgbox.setAttribute("class", "imgbox");
-     container.appendChild(imgbox);
- 
-     // En container for beskrivelsen av skøytehallen.
-     let txt = document.createElement("p");
-     let txtbox = document.createElement("div");
-     txt.innerHTML = object.desc;
-     txtbox.appendChild(txt);
-     txtbox.setAttribute("class", "txtbox");
-     container.appendChild(txtbox);
-     page.appendChild(container);
+    // Skaper en container for bildet og beskrivelsen av skøytehallen.
+    let container = document.createElement("div");
+    container.setAttribute("class", "container")
+
+
+    let imgbox = document.createElement("div"); // Container for bildet.
+
+    // Skaper bildet og bildeteksten.
+    let img = document.createElement("img");
+    let imgtxt = document.createElement("p");
+    img.setAttribute("src", object.img[0]);
+    imgtxt.innerHTML = "Bilde: "+object.img[1];
+    imgtxt.style.fontSize = "small";
+    imgbox.appendChild(img);
+    imgbox.appendChild(imgtxt);
+    imgbox.setAttribute("class", "imgbox");
+    container.appendChild(imgbox);
+
+    // En container for beskrivelsen av skøytehallen.
+
+    let txt = document.createElement("p");
+    let txtbox = document.createElement("div");
+    txt.innerHTML = object.desc;
+    txtbox.appendChild(reviewsStars(reviewDoc[0].data(), object));
+    txtbox.appendChild(txt);
+    txtbox.setAttribute("class", "txtbox");
+    container.appendChild(txtbox);
+    page.appendChild(container);
 }
 
 
@@ -109,14 +112,29 @@ function buildContent2(page, object){
     containerLeft.appendChild(document.createElement("br"))
     containerLeft.appendChild(openingHours(object));
     container.append(containerLeft);
-    container.append(map(object));
-
+    
+    let consent = getConsent();
+    if(consent == "true"){
+        container.append(map(object));
+    }
     
     page.appendChild(container);
 }
 
 
 // Subfunksjoner
+
+function getConsent(){
+    // Leter gjennom cookiesene på nettsiden og ser etter gitt samtykke til cookies.
+    const name = "consent=";
+    const cDecoded = decodeURIComponent(document.cookie);
+    const cArray = cDecoded.split(";");
+    let result;
+    cArray.forEach(val => {
+        if(val.indexOf(name)===0) result=val.substring(name.length);
+    })
+    return result;
+}
 
 function tickets(object){
     // Finner antall billettyper.
@@ -210,6 +228,7 @@ function openingHours(object){
 function map(object){
     // Her blir kartet og div elementet dets skapt.
     let mapbox = document.createElement("div");
+    mapbox.setAttribute("height", "100%")
     let map = document.createElement("iframe");
 
     map.setAttribute("src", object.map);
@@ -220,30 +239,33 @@ function map(object){
     return mapbox;
 }
 
-function reviewsStars(object){
+function reviewsStars(review, object){
     // Regner ut hvor mange stjerner hallen har og bygger de
-    let stars = object.stars;
+    let stars = review.stars;
     let len = stars.length;
     let sum = stars.reduce((partialSum, a) => partialSum + a, 0);
-    let average = Math.round(sum/len*10)/10;
+    let average = (Math.round(sum/len*10)/10).toFixed(1);
     let averageInt = Math.round(average);
     
-    let starsEl = document.createElement("h2");
+    let starsEl = document.createElement("a");
     starsEl.setAttribute("class", "stars");
     let starsColored = document.createElement("span");
     starsColored.setAttribute("class", "starsColored");
-
-    let tmp = "";
+    
+    let tmp = average.toString()+" ";
     for(let i=0; i<averageInt; i++){
         tmp = tmp+"★";
     }
     starsColored.innerHTML = tmp;
     starsEl.appendChild(starsColored);
+    
     tmp = ""
-    for(let i=0; i<5-averageInt; i++){
-        tmp = tmp+"★";
+    if(5-averageInt > 0){
+        for(let i=0; i<5-averageInt; i++){
+            tmp +="★";
+        }
+        starsEl.innerHTML += tmp;
     }
-    starsEl.appendChild(tmp);
-
+    starsEl.setAttribute("href", "./anmeldelser.html/?hall="+object.name);
     return starsEl;
 }
