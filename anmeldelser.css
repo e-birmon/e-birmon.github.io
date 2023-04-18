@@ -1,0 +1,35 @@
+h2 {  
+    text-align: center;
+}
+
+#reviewInputBox {
+    width: fit-content;
+    margin: auto;
+}
+
+.starbox {
+    text-align: center;
+}
+
+.stars {
+    font-size: large;
+    text-decoration: none;
+    font-weight: bold;
+    color: lightblue;
+}
+
+.starsColored {
+    color: #2564a8;
+}
+
+.starsMedium {
+    font-size: medium;
+    text-decoration: none;
+    font-weight: bold;
+    color: lightblue;
+}
+
+.review {
+    padding-left: 50px;
+    border-bottom: #348ceb solid;
+}

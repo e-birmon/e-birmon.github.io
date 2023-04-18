@@ -58,7 +58,7 @@ async function displayPage(i) {
     buildContent2(page, object); // Billetter, kart, kontaktinfo og åpningstider
   }
 
-  async function buildContent0(page, object) {
+async function buildContent0(page, object) {
     // Skaper tittelen for siden.
     let header = document.createElement("h1");
     header.innerHTML = object.name;
@@ -112,9 +112,9 @@ function buildContent2(page, object){
     containerLeft.appendChild(document.createElement("br"))
     containerLeft.appendChild(openingHours(object));
     container.append(containerLeft);
-    
+
     let consent = getConsent();
-    if(consent == "true"){
+    if(consent == true){
         container.append(map(object));
     }
     
@@ -125,16 +125,23 @@ function buildContent2(page, object){
 // Subfunksjoner
 
 function getConsent(){
-    // Leter gjennom cookiesene på nettsiden og ser etter gitt samtykke til cookies.
+    // Look through the website's cookies and search for the given consent to cookies.
     const name = "consent=";
-    const cDecoded = decodeURIComponent(document.cookie);
+    const cDecoded = decodeURIComponent(document.cookie.trim());
+    console.log('decoded cookie:', cDecoded); // Debugging statement
     const cArray = cDecoded.split(";");
+    console.log('cookie array:', cArray); // Debugging statement
     let result;
     cArray.forEach(val => {
-        if(val.indexOf(name)===0) result=val.substring(name.length);
+      console.log('current cookie value:', val.trim()); // Debugging statement
+      if(val.trim().indexOf(name)===0) {
+        const consentValue = val.trim().split('=')[1];
+        result = consentValue === 'true';
+      }
     })
+    console.log('consent cookie value:', result); // Debugging statement
     return result;
-}
+  }
 
 function tickets(object){
     // Finner antall billettyper.
