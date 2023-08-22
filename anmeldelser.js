@@ -135,15 +135,15 @@ function reviewInput(){
 
     // Knapp
     let reviewSubmit = document.createElement("button");
-    reviewSubmit.setAttribute("id", "reviewSubmitBtn");
-    reviewSubmit.innerHTML = "Send inn";    
+    reviewSubmit.setAttribute("id", "reviewSubmitBtn");  
 
     reviewed = hasReviewed();
     if(reviewed=="true"){
-        reviewSubmit.setAttribute("disabled", true);
+        reviewSubmit.innerHTML = "Send inn på nytt";  
     }else{
-        reviewSubmit.addEventListener("click", sendDataDB);
+        reviewSubmit.innerHTML = "Send inn";  
     }
+    reviewSubmit.addEventListener("click", sendReview);
     fieldset.appendChild(reviewSubmit);
 
     form.appendChild(fieldset);
@@ -154,55 +154,71 @@ function reviewInput(){
 
 
 // Sender anmeldelsen til databasen
-function sendDataDB(){
-    if(hasReviewed() == "true"){
-        alert("Du har allerede lagt igjen en anmeldelse.");
+function sendReview(){
+
+    let title = document.getElementById("reviewTitle").value;
+    let review = document.getElementById("reviewTxt").value;
+    let stars = document.getElementById("reviewStars").value;
+    let userID = UUID();
+
+    if(title == "" || review == "" || stars < 1 || stars > 5){
+        if(title == "") alert("Du må ha en tittel!");
+        if(review == "") alert("Du må ha tekst i anmeldelsen!");
+        if(stars < 1) alert("Du kan ikke ha færre enn 1 stjerne!");
+        if(stars > 5) alert("Du kan ikke ha flere enn 5 stjerner!");
+
     }else{
-
-        let title = document.getElementById("reviewTitle").value;
-        let review = document.getElementById("reviewTxt").value;
-        let stars = document.getElementById("reviewStars").value;
-
-        if(title == "" || review == "" || stars < 1 || stars > 5){
-            if(title == "") alert("Du må ha en tittel!");
-            if(review == "") alert("Du må ha tekst i anmeldelsen!");
-            if(stars < 1) alert("Du kan ikke ha færre enn 1 stjerne!");
-            if(stars > 5) alert("Du kan ikke ha flere enn 5 stjerner!");
-
-        }else{
-            let d = new Date();
-            d.setDate(d.getDate() + 365242);
-            let expires = "expires="+ d.toUTCString();
-            document.cookie = "sentReview"+hall+"=true; "+expires+"; SameSite=lax; path=/";
-
-            console.log(title, stars, review);
-
-            let docRef = firebase.firestore().collection("Reviews").doc(hall);
+        
+        if(hasReviewed()){
             let newApproved = reviewData.approved;
             let newTitle = reviewData.title;
             let newContent = reviewData.content;
             let newStars = reviewData.stars;
 
-            newApproved.push(false);
-            newTitle.push(title);
-            newContent.push(review);
-            newStars.push(parseInt(stars));
-            docRef.update({
-                approved: newApproved,
-                title: newTitle,
-                content: newContent,
-                stars: newStars
-            })
-            .then(function() {
-                console.log("Document successfully updated!");
-            })
-            .catch(function(error) {
-                console.error("Error updating document:", error);
-            })
+        }else{
+            let index = null;
+            for(let i=0; i<reviewData.user.length; i++){
+                if(reviewData.user[i] == userID){
+                    index = i;
+                    break;
+                }
+            }
+            if(index == null){
+                alert("An error has occured.");
+            }else{
+                
+            }
         }
+
     }
     clearForm();
 }
+
+function sendDataDB(){
+    let d = new Date();
+    d.setDate(d.getDate() + 365242);
+    let expires = "expires="+ d.toUTCString();
+    document.cookie = "sentReview"+hall+"=true; "+expires+"; SameSite=lax; path=/";
+    
+    let docRef = firebase.firestore().collection("Reviews").doc(hall);
+    newApproved.push(false);
+    newTitle.push(title);
+    newContent.push(review);
+    newStars.push(parseInt(stars));
+    docRef.update({
+        approved: newApproved,
+        title: newTitle,
+        content: newContent,
+        stars: newStars
+    })
+    .then(function() {
+        console.log("Document successfully updated!");
+    })
+    .catch(function(error) {
+        console.error("Error updating document:", error);
+    })
+}
+
 
 function clearForm(){
     let title = document.getElementById("reviewTitle");
@@ -212,8 +228,7 @@ function clearForm(){
     title.value = null;
     review.value = null;
     stars.value = null;
-    document.getElementById("reviewSubmitBtn").setAttribute("disabled", true);
-    document.getElementById("reviewSubmitBtn").removeEventListener("click", sendDataDB);
+    document.getElementById("reviewSubmitBtn").innerHTML = "Send inn på nytt";
 }
 
 
@@ -312,6 +327,44 @@ function displayReviews(reviewData){
         }
     }
 }
+
+function UUID(){
+    let userID = getCookieValue("UUID");
+    if(userID == null){
+        userID = "";
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charslen = chars.length;
+        for(let i=0; i<16; i++){
+            userID += chars.charAt(Math.floor(Math.random() * charslen));
+        }
+
+        let d = new Date();
+        d.setDate(d.getDate() + 365242);
+        let expires = "expires="+ d.toUTCString();
+        document.cookie = "UUID="+userID+"; exipres="+expires+"; SameSite=lax; path=/"
+    }   
+    return userID;
+}
+
+function getCookieValue(cookieName) {
+    // Split the cookies into an array
+    const cookies = document.cookie.split(';');
+  
+    // Loop through the array to find the cookie with the matching name
+    for(let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+    
+        // Check if the cookie name matches the desired name
+        if(cookie.startsWith(`${cookieName}=`)) {
+            // Return the cookie value
+            return cookie.substring(`${cookieName}=`.length, cookie.length);
+        }
+    }
+  
+    // If the cookie isn't found, return null
+    return null;
+}
+  
 
 var reviewData;
 createPage();
